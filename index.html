@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Simulation</title>
+    <meta charset="UTF-8" />
+    <style></style>
+  </head>
+
+  <body>
+    <canvas id="gameCanvas" width="1350" height="630"></canvas>
+    <script>
+      const FPS = 30;
+      const SHIP_SIZE = 30; //SHIP HEIGHT
+      var fire_size = 0;
+      var fire_x = 0;
+      var fire_y = 0;
+      var turn_speed = 180;
+      var angletoturn = 0;
+      var left = false;
+      var right = false;
+      var canv = document.getElementById("gameCanvas");
+      var ctx = canv.getContext("2d");
+      var ship = {
+        x: canv.width / 2,
+        y: canv.height / 2,
+        r: SHIP_SIZE / 2,
+        a: (0 / 180) * Math.PI,
+        rot: 0
+      };
+      //event listeners
+      document.addEventListener("keydown", keyDown);
+      document.addEventListener("keyup", keyUp);
+      document.addEventListener("click", getPosition);
+      //game loop
+      setInterval(update, 1000 / FPS);
+
+      function keyDown(/** @type {KeyboardEvent} */ ev) {
+        switch (ev.keyCode) {
+          case 37: //left
+            ship.rot = ((turn_speed / 180) * Math.PI) / FPS;
+            break;
+          case 38: //thrust
+            break;
+          case 39: //right
+            ship.rot = ((-turn_speed / 180) * Math.PI) / FPS;
+            break;
+        }
+      }
+      function keyUp(/** @type {KeyboardEvent} */ ev) {
+        switch (ev.keyCode) {
+          case 37: //left stop
+            ship.rot = 0;
+            break;
+          case 38: //thrust
+            break;
+          case 39: //right stop
+            ship.rot = 0;
+            break;
+        }
+      }
+      function getPosition(event) {
+        var rect = canv.getBoundingClientRect();
+        fire_size = 10;
+        fire_x = event.clientX - rect.left; // x == the location of the click in the document - the location (relative to the left) of the canvas in the document
+        fire_y = event.clientY - rect.top; // y == the location of the click in the document - the location (relative to the top) of the canvas in the document
+        //console.log("fire co-ord "+fire_x+" "+fire_y);
+        //console.log("ship's co-ord : "+ship.x+"  "+ship.y);
+        var angleRadians = Math.atan2(ship.y - fire_y , ship.x -  fire_x) * 180 / Math.PI;
+        //console.log(angleRadians);
+        angletoturn = 180 - angleRadians ;
+        console.log("angletoturn "+angletoturn);
+        //ship.rot = ((-turn_speed / 180) * Math.PI) / FPS;
+        if(ship.a<angletoturn / 180*Math.PI)
+        {
+          ship.rot = ((turn_speed / 180) * Math.PI) / FPS;
+          left = true;
+          right = false;
+        }
+        else {
+          {
+            ship.rot = ((-turn_speed / 180) * Math.PI) / FPS;
+            right = true;
+            left = false;
+          }
+        }
+        // if(ship.a == (240 / 180) * Math.PI)
+        //    {
+        //     ship.rot = 0;
+        //     ship.a = 90 / 180 * Math.PI;
+        //     console.log("reached end");
+        // }
+        //drawCoordinates(fire_x, fire_y);
+      }
+      //var ship_nosex = ship.x + (4 / 3) * ship.r * Math.cos(ship.a);
+      //var ship_nosey = ship.y - (4 / 3) * ship.r * Math.sin(ship.a);
+      function update() {
+        //draw space
+        ctx.fillStyle = "#228B22";
+        ctx.fillRect(0, 0, canv.width, canv.height);
+        //draw ship
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = SHIP_SIZE / 20;
+        ctx.beginPath();
+        ctx.moveTo(
+          ship.x + (4 / 3) * ship.r * Math.cos(ship.a),
+          ship.y - (4 / 3) * ship.r * Math.sin(ship.a)
+        );
+        ctx.lineTo(
+          ship.x - ship.r * ((2 / 3) * Math.cos(ship.a) + Math.sin(ship.a)),
+          ship.y + ship.r * ((2 / 3) * Math.sin(ship.a) - Math.cos(ship.a))
+        );
+        ctx.lineTo(
+          ship.x - ship.r * ((2 / 3) * Math.cos(ship.a) - Math.sin(ship.a)),
+          ship.y + ship.r * ((2 / 3) * Math.sin(ship.a) + Math.cos(ship.a))
+        );
+        ctx.closePath();
+        ctx.stroke();
+        //center of the ship
+        ctx.fillStyle = "red";
+        ctx.fillRect(ship.x - 1, ship.y - 1, 2, 2);
+        //rotate ship
+
+        ship.a += ship.rot;
+        if((ship.a >= (angletoturn / 180) * Math.PI) && left == true)
+           {
+             //ship.rot=0;
+             ship.a = angletoturn /180 * Math.PI;
+           }
+           if((ship.a <= (angletoturn / 180) * Math.PI) && right == true)
+              {
+                //ship.rot=0;
+                ship.a = angletoturn /180 * Math.PI;
+              }
+        // if (ship.a >= (18 / 180) * Math.PI) {
+        //   ship.a = (18 / 180) * Math.PI;
+        // }
+        // if (ship.a <= (0 / 180) * Math.PI) {
+        //   ship.a = (0 / 180) * Math.PI;
+        // }
+        // FIRE CIRCLE
+        ctx.fillStyle = "#ff6303"; // whitecolor
+        ctx.beginPath(); //Start path
+        ctx.arc(fire_x, fire_y, fire_size, 0, Math.PI * 2, true); // Draw a point using the arc function of the canvas with a point structure.
+        ctx.fill(); // Close the path and fill.
+      }
+    </script>
+  </body>
+</html>
